@@ -68,26 +68,26 @@ void SymbolTable::run(string filename) {
             sregex_token_iterator iter(line.begin(), line.end(), reg, -1);
             sregex_token_iterator end;
             vector<string> vec(iter, end);
-            checkLine(line);
+            checkLine(line);   
             if(vec[0] == "INSERT"){
                 if(isSpecial(vec[1]) || isSpecial(vec[2]))
-                    throw InvalidInstruction(line);
+                    throw InvalidInstruction(line); // if variable and type is invalid
                 if(!(insert(vec[1], vec[2]))){
-                    throw Redeclared(line);
+                    throw Redeclared(line);   // if variable was declared
                 }
                 else
                     cout << "success" << endl;
             }
             else if(vec[0] == "ASSIGN"){
-                if(isSpecial(vec[1]))
-                    throw InvalidInstruction(line);
-                if(!isDeclared(vec[1])){   // if vec1 is undeclared
+                if(isSpecial(vec[1]))   // if variable is invalid
+                    throw InvalidInstruction(line);  
+                if(!isDeclared(vec[1])){   // if variable is undeclared
                     throw Undeclared(line);
                 }
                 else if((isSpecial(vec[2]) && !checkStr(vec[2])))
                     throw InvalidInstruction(line);
                 else{
-                    if(checkStr(vec[2]) || checkNum(vec[2])){   // if vec2 is a string or a value
+                    if(checkStr(vec[2]) || checkNum(vec[2])){   // if value is a const string or a const num
                         if (assignValue(vec[1], vec[2]))
                             cout << "success" << endl;
                         if (!assignValue(vec[1], vec[2]))

@@ -66,7 +66,7 @@ void SymbolTable::checkLine(string line)
     // regex valid("[a-zA-Z0-9]");
     // sregex_token_iterator iter(line.begin(), line.end(), reg, -1);
     // sregex_token_iterator end;
-    // vector<string> vec(iter, end); - cannot use word vector
+    //
 
     regex reg(" +(?=(?:[^\']*\'[^\']*\')*[^\']*$)");
     regex_token_iterator<string::iterator> iter(line.begin(), line.end(), reg, -1);
@@ -228,9 +228,15 @@ int SymbolTable::howManyScope(string filename){
     ifstream file(filename);
     while(getline(file, line)){
         regex reg(" +(?=(?:[^\']*\'[^\']*\')*[^\']*$)");
-        sregex_token_iterator iter(line.begin(), line.end(), reg, -1);
-        sregex_token_iterator end;
-        vector<string> vec(iter, end);
+        regex_token_iterator<string::iterator> iter(line.begin(), line.end(), reg, -1);
+        regex_token_iterator<string::iterator> end;
+        string vec[3]{""};
+        int i = 0;
+        while (iter != end)
+        {
+            vec[i] = *iter++;
+            i++;
+        }
         //checkLine(line);
         if(vec[0] == "BEGIN")
             countTab++;
@@ -295,9 +301,15 @@ void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string lin
         {
             //cout << line << " ";
             regex reg(" +(?=(?:[^\']*\'[^\']*\')*[^\']*$)");
-            sregex_token_iterator iter(line.begin(), line.end(), reg, -1);
-            sregex_token_iterator end;
-            vector<string> vec(iter, end);
+            regex_token_iterator<string::iterator> iter(line.begin(), line.end(), reg, -1);
+            regex_token_iterator<string::iterator> end;
+            string vec[3]{""};
+            int i = 0;
+            while (iter != end)
+            {
+                vec[i] = *iter++;
+                i++;
+            }
             checkLine(line);
             if (vec[0] == "INSERT")
             {

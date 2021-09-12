@@ -302,7 +302,7 @@ void SymbolTable::print(Node **tabs, int scope){
     Node *p = headList;
     Node *printList;
     for(int i = headList->scopeLevel; i <= scope; i++){
-        //
+        
     }
 
     // delete List;

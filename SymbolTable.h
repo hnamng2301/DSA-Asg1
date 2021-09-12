@@ -59,6 +59,6 @@ public:
     Node *List(Node **tabs, int scope);
     void print(Node **headList, int scope);   // task 3.5.5 function
     void rePrint(Node **tabs, int scope); // task 3.5.6 function
-    ~SymbolTable();
+    ~SymbolTable(); 
 };
 #endif

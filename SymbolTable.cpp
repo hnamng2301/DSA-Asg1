@@ -66,7 +66,7 @@ void SymbolTable::checkLine(string line)
     // regex valid("[a-zA-Z0-9]");
     // sregex_token_iterator iter(line.begin(), line.end(), reg, -1);
     // sregex_token_iterator end;
-    // vector<string> vec(iter, end); - cannot use word vector
+    //
 
     regex reg(" +(?=(?:[^\']*\'[^\']*\')*[^\']*$)");
     regex_token_iterator<string::iterator> iter(line.begin(), line.end(), reg, -1);
@@ -75,6 +75,8 @@ void SymbolTable::checkLine(string line)
     int i = 0;
     while (iter != end)
     {
+        if(i >= 3)
+            throw InvalidInstruction(line);
         vec[i] = *iter++;
         i++;
     }
@@ -157,29 +159,34 @@ bool SymbolTable::assignValue(SymbolTable *symTab, string lineName, string lineV
 bool SymbolTable::assignVar(SymbolTable *symTab, string lineName, string lineValue, Node **tabs, int scope){
     Node *varID;
     Node *valID;
-    
     if(isDeclared(symTab, lineValue, tabs, scope) && isDeclared(symTab, lineName, tabs, scope)){
         //cout << "OK";
-        if(lineName == lineValue)
+        if (lineName == lineValue)
             return true;
-        for(int i = 0; i <= scope; i++)
+        //cout << scope;
+        for (int i = scope; i >= 0; i--)
         {
             varID = tabs[i];
-            valID = tabs[i];
-            while (varID != nullptr){
-                while (valID != nullptr)
+            while (varID != nullptr)
+            {
+                for (int j = scope; j >= 0; j--)
                 {
-                    if (varID->tabName == lineName && varID->dataType == valID->dataType && valID->tabName == lineValue)
+                    valID = tabs[j];
+                    while (valID != nullptr)
                     {
-                        return true;
+                        if (varID->tabName == lineName && valID->tabName == lineValue && varID->dataType == valID->dataType)
+                        {
+                            //cout << varID->tabName << " " << valID->tabName;
+                            return true;
+                        }
+                        valID = valID->next;
                     }
-                    valID = valID->next;
                 }
                 varID = varID->next;
             }
         }
     }
-    
+
     return false;
 }
 bool SymbolTable::insert(SymbolTable *symTab, string lineName, string lineType, int &scope){
@@ -228,9 +235,16 @@ int SymbolTable::howManyScope(string filename){
     ifstream file(filename);
     while(getline(file, line)){
         regex reg(" +(?=(?:[^\']*\'[^\']*\')*[^\']*$)");
-        sregex_token_iterator iter(line.begin(), line.end(), reg, -1);
-        sregex_token_iterator end;
-        vector<string> vec(iter, end);
+        regex_token_iterator<string::iterator> iter(line.begin(), line.end(), reg, -1);
+        regex_token_iterator<string::iterator> end;
+        string vec[3]{""};
+        int i = 0;
+        while (iter != end)
+        {
+            if(i >= 3) break;
+            vec[i] = *iter++;
+            i++;
+        }
         //checkLine(line);
         if(vec[0] == "BEGIN")
             countTab++;
@@ -253,30 +267,44 @@ int SymbolTable::lookUp(SymbolTable *symTab, Node **tabs, string lineVar, int &s
     }
     return -1;
 }
-void SymbolTable::print(int scope, Node **tabs){
-    Node *List = new Node();
-
-    Node *p = tabs[scope]->next;
-    while (p != nullptr)
-    {
-        List->next = p;
-        p = p->next;
-    }
-
-    for(int i = scope - 1; i >= 0; i--){
-        p = tabs[i];
-        while (p != nullptr)
-        {
-            List->next = p;
-            p = p->next;
+Node* SymbolTable::List(Node **tabs, int scope){
+    Node *headList = nullptr;
+    int beginScope;
+    for(int i = 0; i <= scope; i++){
+        if(tabs[i] != nullptr){
+            beginScope = i;
+            headList = new Node(tabs[i]);      // Node khong null dau tien cua tabs la Node head cua List
+            break;
         }
     }
-    Node *printList = List;
-    while(printList != nullptr){
-        cout << printList->tabName << "//" << printList->scopeLevel << " ";
-        printList = printList->next;
+
+    Node *p = headList;
+    Node *nodeInTab = nullptr;
+    for(int i = beginScope; i <= scope; i++){ 
+        if(i == beginScope)
+            nodeInTab = tabs[i]->next;
+        else
+            nodeInTab = tabs[i];
+
+        while (nodeInTab != nullptr)
+        {
+            Node *newNode = new Node(nodeInTab);
+            p->next = newNode;
+            p = p->next;
+            nodeInTab = nodeInTab->next;
+        }   
     }
-    cout << endl;
+    return headList;
+}
+void SymbolTable::print(Node **tabs, int scope){
+    Node *headList = List(tabs, scope);
+    
+    Node *p = headList;
+    Node *printList;
+    for(int i = headList->scopeLevel; i <= scope; i++){
+        
+    }
+
     // delete List;
     // delete printList;
     // delete p;
@@ -295,14 +323,21 @@ void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string lin
         {
             //cout << line << " ";
             regex reg(" +(?=(?:[^\']*\'[^\']*\')*[^\']*$)");
-            sregex_token_iterator iter(line.begin(), line.end(), reg, -1);
-            sregex_token_iterator end;
-            vector<string> vec(iter, end);
+            regex_token_iterator<string::iterator> iter(line.begin(), line.end(), reg, -1);
+            regex_token_iterator<string::iterator> end;
+            string vec[3]{""};
+            int i = 0;
+            while (iter != end)
+            {
+                if(i >= 3) break;
+                vec[i] = *iter++;
+                i++;
+            }
             checkLine(line);
             if (vec[0] == "INSERT")
             {
                 //tabs[beginCount] = symTab->head;
-                if (vec[2] != "number" && vec[2] != "string" || !idValid(vec[1]))
+                if ((vec[2] != "number" && vec[2] != "string") || !idValid(vec[1]))
                     throw InvalidInstruction(line);
                 // if (isSpecial(vec[1]) || isSpecial(vec[2]))
                 //     throw InvalidInstruction(line);
@@ -315,7 +350,7 @@ void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string lin
             }
             else if (vec[0] == "ASSIGN")
             {
-                cout << idValid(vec[1]) << " " << idValid(vec[2]);
+                //cout << idValid(vec[1]) << " " << idValid(vec[2]);
                 if (!idValid(vec[1]))
                     throw InvalidInstruction(line);
 
@@ -381,7 +416,7 @@ void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string lin
             }
             else if (vec[0] == "PRINT")
             {
-                print(scope, tabs);
+                print(tabs, scope);
             }
             else if (vec[0] == "RPRINT")
             {

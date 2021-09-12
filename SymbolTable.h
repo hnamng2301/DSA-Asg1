@@ -20,9 +20,14 @@ public:
         scopeLevel = scope;
         next = nullptr;
     }
-
+    
+    Node(Node *node){
+        tabName = node->tabName;
+        dataType = node->dataType;
+        scopeLevel = node->scopeLevel;
+        next = nullptr;
+    }
     friend class SymbolTable;
-    friend class Table;
 };
 
 class SymbolTable
@@ -51,7 +56,8 @@ public:
     void enterScope(SymbolTable *currentScope, Node **tabs, int &scope);   // task 3.5.3 function
     void exitScope(SymbolTable *currentScope, Node **tabs, int &scope);    // task 3.5.3 function
     int lookUp(SymbolTable *symTab, Node **tabs, string lineVar, int &scope);  // task 3.5.4 function
-    void print(int scope, Node **tabs);   // task 3.5.5 function
+    Node *List(Node **tabs, int scope);
+    void print(Node **headList, int scope);   // task 3.5.5 function
     void rePrint(Node **tabs, int scope); // task 3.5.6 function
     ~SymbolTable();
     friend class Table;

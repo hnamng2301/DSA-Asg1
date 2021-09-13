@@ -33,8 +33,7 @@ public:
 class SymbolTable
 {
     Node *head;
-    SymbolTable *parrentTab;
-    static int tab;
+    
 public:
     SymbolTable() {
         head = nullptr;   // create Table (LinkedList)
@@ -49,7 +48,7 @@ public:
     bool isDeclared(SymbolTable *symTab, string lineVar, Node **tabs, int scope);   // check variable are declared
     bool checkValue(string lineValue);  //check valid value
     bool isSpecial(string name);  // check special characters
-    bool insert(SymbolTable *symTab, string lineID, string lineType, int &scope);   // task 3.5.1 function 
+    bool insert(SymbolTable *symTab, string lineID, string lineType, int &scope, Node **tabs);   // task 3.5.1 function 
     bool assignValue(SymbolTable *symTab, string lineID, string lineValue, Node **tabs, int scope);  // task 3.5.2 function check value is same type with variable
     bool assignVar(SymbolTable *symTab, string lineID, string lineValue, Node **tabs, int scope);  // task 3.5.2 function check 2 variables are same type
     int howManyScope(string filename); //
@@ -57,6 +56,8 @@ public:
     void exitScope(SymbolTable *currentScope, Node **tabs, int &scope);    // task 3.5.3 function
     int lookUp(SymbolTable *symTab, Node **tabs, string lineVar, int &scope);  // task 3.5.4 function
     Node *List(Node **tabs, int scope);
+    Node *reverse(Node *head); 
+    void deleteNode(Node *head);
     void print(Node **headList, int scope);   // task 3.5.5 function
     void rePrint(Node **tabs, int scope); // task 3.5.6 function
     ~SymbolTable(); 

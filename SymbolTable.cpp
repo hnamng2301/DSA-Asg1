@@ -139,19 +139,39 @@ void SymbolTable::checkLine(string line)
     
 }
 bool SymbolTable::assignValue(SymbolTable *symTab, string lineName, string lineValue, Node **tabs, int scope){
-    Node *cur = symTab->head;
-    
-    if(isDeclared(symTab, lineName, tabs, scope) && (checkNum(lineValue) || checkStr(lineValue)))
-    {
-        while(cur != nullptr){
-            if (cur->dataType == "number" && checkNum(lineValue) && cur->tabName == lineName){
-                return true;
+    for(int i = scope; i >= 0; i--){
+        if (isDeclared(symTab, lineName, tabs, scope) && (checkNum(lineValue) || checkStr(lineValue)))
+        {
+            // cout << "OK";
+            Node *cur = tabs[i];
+            while (cur != nullptr)
+            {
+                if (cur->dataType == "number" && checkNum(lineValue) && cur->tabName == lineName)
+                {
+                    return true;
+                }
+                else if (!(cur->dataType != "number" || checkNum(lineValue)) && cur->tabName == lineName)
+                {
+                    return false;
+                }
+                else if (!(cur->dataType == "number" || !checkNum(lineValue)) && cur->tabName == lineName)
+                {
+                    return false;
+                }
+                else if (cur->dataType == "string" && checkStr(lineValue) && cur->tabName == lineName)
+                {
+                    return true;
+                }
+                else if (!(cur->dataType == "string" || !checkStr(lineValue)) && cur->tabName == lineName)
+                {
+                    return false;
+                }
+                else if (!(cur->dataType != "string" || checkStr(lineValue)) && cur->tabName == lineName)
+                {
+                    return false;
+                }
+                cur = cur->next;
             }
-            
-            else if (cur->dataType == "string" && checkStr(lineValue) && cur->tabName == lineName){
-                return true;
-            }
-            cur = cur->next;
         }
     }
     return false;
@@ -189,7 +209,7 @@ bool SymbolTable::assignVar(SymbolTable *symTab, string lineName, string lineVal
 
     return false;
 }
-bool SymbolTable::insert(SymbolTable *symTab, string lineName, string lineType, int &scope){
+bool SymbolTable::insert(SymbolTable *symTab, string lineName, string lineType, int &scope, Node **tabs){
     Node *temp = new Node(lineName, lineType, scope);
     // Check Table is NULL?
     if(symTab->head == nullptr){
@@ -212,6 +232,7 @@ bool SymbolTable::insert(SymbolTable *symTab, string lineName, string lineType, 
     p->next = temp; // Add new node at tail
     return true;
 }
+
 ifstream& SymbolTable::goNextLine(ifstream& file, unsigned int iLine){
     file.seekg(ios::beg);
     for(unsigned int i = 0; i < iLine - 1; i++){
@@ -219,6 +240,7 @@ ifstream& SymbolTable::goNextLine(ifstream& file, unsigned int iLine){
     }
     return file;
 }
+
 void SymbolTable::enterScope(SymbolTable *currentScope, Node **tabs, int &scope){
     scope++;
     tabs[scope] = nullptr;
@@ -267,6 +289,7 @@ int SymbolTable::lookUp(SymbolTable *symTab, Node **tabs, string lineVar, int &s
     }
     return -1;
 }
+
 Node* SymbolTable::List(Node **tabs, int scope){
     Node *headList = nullptr;
     int beginScope;
@@ -296,25 +319,87 @@ Node* SymbolTable::List(Node **tabs, int scope){
     }
     return headList;
 }
+Node* SymbolTable::reverse(Node *head){
+    if (head == NULL || head->next == NULL)
+        return head;
+
+    /* reverse the rest List and put
+          the first element at the end */
+    Node *rest = reverse(head->next);
+    head->next->next = head;
+
+    /* tricky step -- see the diagram */
+    head->next = NULL;
+
+    /* fix the head pointer */
+    return rest;
+}
 void SymbolTable::print(Node **tabs, int scope){
     Node *headList = List(tabs, scope);
-    
-    Node *p = headList;
-    Node *printList;
-    for(int i = headList->scopeLevel; i <= scope; i++){
-        
-    }
+    if(headList == nullptr) return;
+    Node *reverseList = reverse(headList);
 
+    Node *ptr1, *ptr2, *dup;
+    ptr1 = reverseList;
+    while(ptr1 != nullptr && ptr1->next != nullptr){
+        ptr2 = ptr1;
+        while(ptr2->next != nullptr){
+            if(ptr1->tabName == ptr2->next->tabName){
+                dup = ptr2->next;
+                ptr2->next = ptr2->next->next;
+                delete dup;
+            }
+            else
+                ptr2 = ptr2->next;
+        }
+        ptr1 = ptr1->next;
+    }
+    headList = reverse(reverseList);
+    Node *printList = headList;
+    while(printList != nullptr){
+        cout << printList->tabName << "//" << printList->scopeLevel;
+        if(printList->next != nullptr) cout << " ";
+        printList = printList->next;
+    }
+    cout << endl;
     // delete List;
     // delete printList;
     // delete p;
 }
 void SymbolTable::rePrint(Node **tabs, int scope){
+    Node *headRList = List(tabs,scope);
+    if(headRList == nullptr) return;
+    Node *reverseRList = reverse(headRList);
 
+    Node *ptr1, *ptr2, *dup;
+    ptr1 = reverseRList;
+    while(ptr1 != nullptr && ptr1->next != nullptr){
+        ptr2 = ptr1;
+        while(ptr2->next != nullptr){
+            if(ptr1->tabName == ptr2->next->tabName){
+                dup = ptr2->next;
+                ptr2->next = ptr2->next->next;
+                delete dup;
+            }
+            else
+                ptr2 = ptr2->next;
+        }
+        ptr1 = ptr1->next;
+    }
+
+    Node *printRList = reverseRList;
+    while(printRList != nullptr){
+        cout << printRList->tabName << "//" << printRList->scopeLevel;
+        if(printRList->next != nullptr) cout << " ";
+        printRList = printRList->next;
+    }
+    cout << endl;
 }
+
 SymbolTable::~SymbolTable(){
-
+    //delete head;
 }
+
 void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string line, unsigned int &iLine, int &beginCount, int &endCount, Node **tabs, int &scope){
     enterScope(symTab, tabs, scope);
     while (symTab->goNextLine(file, iLine))
@@ -341,7 +426,7 @@ void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string lin
                     throw InvalidInstruction(line);
                 // if (isSpecial(vec[1]) || isSpecial(vec[2]))
                 //     throw InvalidInstruction(line);
-                if (!(insert(symTab, vec[1], vec[2], scope)))
+                if (!(insert(symTab, vec[1], vec[2], scope, tabs)))
                 {
                     throw Redeclared(line);
                 }
@@ -367,8 +452,10 @@ void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string lin
                     { // if vec2 is a string or a value
                         if (assignValue(symTab, vec[1], vec[2], tabs, scope))
                             cout << "success" << endl;
-                        if (!assignValue(symTab, vec[1], vec[2], tabs, scope))
+                        if (!assignValue(symTab, vec[1], vec[2], tabs, scope)){
+                            //cout << "Here 1";
                             throw TypeMismatch(line);
+                        }
                     }
                     else
                     {
@@ -376,8 +463,10 @@ void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string lin
                         {
                             if (assignVar(symTab, vec[1], vec[2], tabs, scope)) // If both are same type
                                 cout << "success" << endl;
-                            else
+                            else{
+                                //cout << "Here 2";
                                 throw TypeMismatch(line);
+                            }
                         }
                         else
                             throw Undeclared(line);
@@ -397,8 +486,13 @@ void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string lin
             {
                 //tabs[beginCount] = symTab->head;
                 endCount++; //iLine++;
-                if (beginCount == 0)
+                beginCount--;
+                if (beginCount < 0){
+                    //cout << "?";
                     throw UnknownBlock();
+                }
+                if (beginCount == 0)
+                    endCount = 0;
                 exitScope(symTab, tabs, scope);
                 goNextLine(file, iLine);
                 getline(file,line);
@@ -420,6 +514,7 @@ void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string lin
             }
             else if (vec[0] == "RPRINT")
             {
+                rePrint(tabs, scope);
             }
             else
                 throw InvalidInstruction(line);
@@ -429,12 +524,24 @@ void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string lin
             iLine++;
         }
         else {
-            if (beginCount < endCount)
+            if (beginCount == 0){
+                //cout << beginCount << " " << endCount << " ";
+                return;                  
+            } 
+            else if(beginCount > 0)
+                throw UnclosedBlock(beginCount);
+            if (beginCount < endCount){
+                //cout << beginCount << " " << endCount << " ";
+                //cout << "Here 2";
                 throw UnknownBlock();
-            else if (beginCount > endCount)
-                throw UnclosedBlock(endCount);
-            else 
+            }
+            else if (beginCount >= endCount){
+                throw UnclosedBlock(beginCount);
+            }
+            else{
                 return;
+            }
+                
         }
     }
 
@@ -452,9 +559,9 @@ void SymbolTable::run(string filename) {
         //cout << "Tabs = " << howManyScope(filename) << endl;
     }
     file.close();
-    delete[] tabs;
+    // for(int i = 0; i < howManyScope(filename); i++)
+    //     delete[] tabs[i];
+    // delete[] tabs;
     return;
 }
 
-
-int SymbolTable::tab = 1; //

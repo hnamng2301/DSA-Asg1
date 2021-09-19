@@ -1,0 +1,20 @@
+INSERT b string
+PRINT
+INSERT aAj8oX number
+ASSIGN b b
+PRINT
+INSERT dWpNfd string
+INSERT l number
+INSERT e1 number
+INSERT aGr string
+INSERT s6p string
+INSERT kdr string
+INSERT vPf string
+RPRINT
+INSERT hR string
+INSERT jdIqU1 number
+BEGIN
+PRINT
+PRINT
+ASSIGN dWpNfd s6p
+INSERT t2 number

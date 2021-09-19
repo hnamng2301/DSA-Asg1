@@ -1,14 +1,14 @@
 #include "SymbolTable.h"
 
 // Support function to check Invalid
-bool SymbolTable::idValid(string lineName){
+bool SymbolTable::idValid(string lineName) {
     // Kiem tra ID hop le
-    if(lineName[0] >= 'a' && lineName[0] <= 'z'){ // Phai bat dau bang ky tu thuong
-        for(unsigned int i = 0; i < lineName.size(); i++){
-            if((lineName[i] >= 'A' && lineName[i] <= 'Z')
-            || (lineName[i] >= 'a' && lineName[i] <= 'z')
-            || (lineName[i] >= '0' && lineName[i] <= '9')
-            || lineName[i] == '_')
+    if (lineName[0] >= 'a' && lineName[0] <= 'z') { // Phai bat dau bang ky tu thuong
+        for (unsigned int i = 0; i < lineName.size(); i++) {
+            if ((lineName[i] >= 'A' && lineName[i] <= 'Z')
+                || (lineName[i] >= 'a' && lineName[i] <= 'z')
+                || (lineName[i] >= '0' && lineName[i] <= '9')
+                || lineName[i] == '_')
                 continue;
             else
                 return false;
@@ -18,27 +18,20 @@ bool SymbolTable::idValid(string lineName){
         return false;
     return true;
 }
-bool SymbolTable::checkNum(string lineValue){
+bool SymbolTable::checkNum(string lineValue) {
     regex numConst("\\d+"); // Kiem tra const number (string chi gom cac chu so)
-    if(lineValue[0] == '\'' && lineValue[lineValue.size() -1] == '\'')
+    if (lineValue[0] == '\'' && lineValue[lineValue.size() - 1] == '\'')
         return false;
-    if(regex_match(lineValue,numConst))
+    if (regex_match(lineValue, numConst))
         return true;
     else
         return false;
     return true;
 }
-bool SymbolTable::isSpecial(string lineValue){
-    for(size_t i = 0; i < lineValue.size(); i++){
-        if(lineValue[i] != ' ' && !isalpha(lineValue[i]) && !isdigit(lineValue[i]))
-            return true;
-    }
-    return false;
-}
-bool SymbolTable::checkStr(string lineValue){
+bool SymbolTable::checkStr(string lineValue) {
     regex strConst("^'([a-zA-Z0-9\\s]+)'$"); // Kiem tra const string
-    
-    if(lineValue[0] == '\'' && lineValue[lineValue.size() -1] == '\''){   // Kiem tra value co la string khong
+
+    if (lineValue[0] == '\'' && lineValue[lineValue.size() - 1] == '\'') {   // Kiem tra value co la string khong
         if (regex_match(lineValue, strConst))
             return true;
         else
@@ -48,62 +41,47 @@ bool SymbolTable::checkStr(string lineValue){
         return false;
     return true;
 }
-bool SymbolTable::isDeclared(SymbolTable *symTab, string lineVar, Node **tabs, int scope){
-    for(int i = 0; i <= scope; i++){
-        Node *p = tabs[i];
-        while (p != nullptr)
-        {
-            if (p->tabName == lineVar)
-                return true;
-            p = p->next;
-        }
-    }
-    return false;
-}
-void SymbolTable::checkLine(string line)
-{
-    // regex reg(" +(?=(?:[^\']*\'[^\']*\')*[^\']*$)");
-    // regex valid("[a-zA-Z0-9]");
-    // sregex_token_iterator iter(line.begin(), line.end(), reg, -1);
-    // sregex_token_iterator end;
-    //
-
+void SymbolTable::tokenize(string vec[], string line) {
     regex reg(" +(?=(?:[^\']*\'[^\']*\')*[^\']*$)");
     regex_token_iterator<string::iterator> iter(line.begin(), line.end(), reg, -1);
     regex_token_iterator<string::iterator> end;
-    string vec[3]{""};
     int i = 0;
     while (iter != end)
     {
-        if(i >= 3)
+        if (i >= 3)
             throw InvalidInstruction(line);
         vec[i] = *iter++;
         i++;
     }
+}
+void SymbolTable::checkLine(string line)
+{
+    string vec[3]{ "" };
+    tokenize(vec, line);
     // Kiem tra lenh hop le
-    if(line == "") throw InvalidInstruction(line);
-    if (vec[0] != "INSERT" && vec[0] != "ASSIGN" && vec[0] != "BEGIN" && 
+    if (line == "") throw InvalidInstruction(line);
+    if (vec[0] != "INSERT" && vec[0] != "ASSIGN" && vec[0] != "BEGIN" &&
         vec[0] != "END" && vec[0] != "LOOKUP" && vec[0] != "PRINT" && vec[0] != "RPRINT")
         throw InvalidInstruction(line);
 
     // Kiem tra space o dau dong va cuoi dong
-    if (line[0] == ' ' || line[line.size() - 1] == ' '){
-        throw InvalidInstruction(line); 
+    if (line[0] == ' ' || line[line.size() - 1] == ' ') {
+        throw InvalidInstruction(line);
     }
-    
+
     // Kiem tra cac khoang trang o giua lenh
     // int spaceNum = 0;
     // for(unsigned int i = 0; i < line.size(); i++){
     //     if(line[i] == ' ')
     //         spaceNum++;
     // }
-    if(vec[0] == "INSERT" || vec[0] == "ASSIGN"){
-        for(int i = 0; i < 3; i++){
-            if(vec[i] == "")
+    if (vec[0] == "INSERT" || vec[0] == "ASSIGN") {
+        for (int i = 0; i < 3; i++) {
+            if (vec[i] == "")
                 throw InvalidInstruction(line);
-        } 
+        }
         string test = vec[0];
-        test  += ' ' + vec[1] + ' ' + vec[2];
+        test += ' ' + vec[1] + ' ' + vec[2];
         // if(vec[0] == "ASSIGN"){
         //     if (!checkStr(vec[2]) && !checkNum(vec[2]))
         //         throw InvalidInstruction(line);
@@ -112,17 +90,17 @@ void SymbolTable::checkLine(string line)
         //     if(!idValid(vec[1]) || !idValid(vec[2]))
         //         throw InvalidInstruction(line);
         // }
-        if(line != test)
+        if (line != test)
             throw InvalidInstruction(line);
     }
-    else if(vec[0] == "BEGIN" || vec[0] == "END" || vec[0] == "PRINT" || vec[0] == "RPRINT"){
-        if(line != vec[0])
+    else if (vec[0] == "BEGIN" || vec[0] == "END" || vec[0] == "PRINT" || vec[0] == "RPRINT") {
+        if (line != vec[0])
             throw InvalidInstruction(line);
     }
-    else if(vec[0] == "LOOKUP"){
+    else if (vec[0] == "LOOKUP") {
         string test = vec[0];
-        test  += ' ' + vec[1];
-        if(line != test)
+        test += ' ' + vec[1];
+        if (line != test)
             throw InvalidInstruction(line);
     }
     // Kiem tra ki tu dac biet
@@ -136,215 +114,212 @@ void SymbolTable::checkLine(string line)
     // // Kiem tra ten hop le
     // if(!idValid(vec[1]) || !idValid(vec[2]))
     //     throw InvalidInstruction(line);
-    
-}
-bool SymbolTable::assignValue(SymbolTable *symTab, string lineName, string lineValue, Node **tabs, int scope){
-    for(int i = scope; i >= 0; i--){
-        if (isDeclared(symTab, lineName, tabs, scope) && (checkNum(lineValue) || checkStr(lineValue)))
-        {
-            // cout << "OK";
-            Node *cur = tabs[i];
-            while (cur != nullptr)
-            {
-                if (cur->dataType == "number" && checkNum(lineValue) && cur->tabName == lineName)
-                {
-                    return true;
-                }
-                else if (!(cur->dataType != "number" || checkNum(lineValue)) && cur->tabName == lineName)
-                {
-                    return false;
-                }
-                else if (!(cur->dataType == "number" || !checkNum(lineValue)) && cur->tabName == lineName)
-                {
-                    return false;
-                }
-                else if (cur->dataType == "string" && checkStr(lineValue) && cur->tabName == lineName)
-                {
-                    return true;
-                }
-                else if (!(cur->dataType == "string" || !checkStr(lineValue)) && cur->tabName == lineName)
-                {
-                    return false;
-                }
-                else if (!(cur->dataType != "string" || checkStr(lineValue)) && cur->tabName == lineName)
-                {
-                    return false;
-                }
-                cur = cur->next;
-            }
-        }
-    }
-    return false;
-}
-bool SymbolTable::assignVar(SymbolTable *symTab, string lineName, string lineValue, Node **tabs, int scope){
-    Node *varID;
-    Node *valID;
-    if(isDeclared(symTab, lineValue, tabs, scope) && isDeclared(symTab, lineName, tabs, scope)){
-        //cout << "OK";
-        if (lineName == lineValue)
-            return true;
-        //cout << scope;
-        for (int i = scope; i >= 0; i--)
-        {
-            varID = tabs[i];
-            while (varID != nullptr)
-            {
-                for (int j = scope; j >= 0; j--)
-                {
-                    valID = tabs[j];
-                    while (valID != nullptr)
-                    {
-                        if (varID->tabName == lineName && valID->tabName == lineValue && varID->dataType == valID->dataType)
-                        {
-                            //cout << varID->tabName << " " << valID->tabName;
-                            return true;
-                        }
-                        valID = valID->next;
-                    }
-                }
-                varID = varID->next;
-            }
-        }
-    }
 
-    return false;
 }
-bool SymbolTable::insert(SymbolTable *symTab, string lineName, string lineType, int &scope, Node **tabs){
-    Node *temp = new Node(lineName, lineType, scope);
+bool SymbolTable::insert(NodeTab* currentScope, string lineName, string lineType, int scope) {
     // Check Table is NULL?
-    if(symTab->head == nullptr){
-        symTab->head = temp;
+    //cout << currentScope->head->nodeLevel;
+    if (currentScope->isNotExist(lineName)) {
+        currentScope->insertInTab(lineName, lineType, scope);
         return true;
     }
-    // Check table if there are duplicate nodes
-    Node *p = symTab->head;
-    while(p->next != nullptr){
-        if(lineName == p->tabName){
-            //cout << "valName: " << p->tabName;
-            return false;
-        }
-        else{
-            p = p->next;
-        }
-    }
-    if(lineName == p->tabName)
+    else {
         return false;
-    p->next = temp; // Add new node at tail
+    }
     return true;
 }
 
-ifstream& SymbolTable::goNextLine(ifstream& file, unsigned int iLine){
-    file.seekg(ios::beg);
-    for(unsigned int i = 0; i < iLine - 1; i++){
-        file.ignore(numeric_limits<streamsize>::max(),'\n');
-    }
-    return file;
-}
-
-void SymbolTable::enterScope(SymbolTable *currentScope, Node **tabs, int &scope){
-    scope++;
-    tabs[scope] = nullptr;
-    currentScope->head = tabs[scope];
-
-}
-void SymbolTable::exitScope(SymbolTable *currentScope, Node **tabs, int &scope){
-    scope--;
-    currentScope->head = tabs[scope];
-}
-int SymbolTable::howManyScope(string filename){
-    string line;
-    int countTab = 1;
-    ifstream file(filename);
-    while(getline(file, line)){
-        regex reg(" +(?=(?:[^\']*\'[^\']*\')*[^\']*$)");
-        regex_token_iterator<string::iterator> iter(line.begin(), line.end(), reg, -1);
-        regex_token_iterator<string::iterator> end;
-        string vec[3]{""};
-        int i = 0;
-        while (iter != end)
-        {
-            if(i >= 3) break;
-            vec[i] = *iter++;
-            i++;
+bool SymbolTable::isDeclared(NodeTab* currentScope, string lineVar, int scope) {
+    NodeTab* p = currentScope;
+    while (p != nullptr) {
+        Node* dupNode = p->head;
+        while (dupNode != nullptr) {
+            if (dupNode->symName == lineVar)
+                return true;
+            dupNode = dupNode->next;
         }
-        //checkLine(line);
-        if(vec[0] == "BEGIN")
-            countTab++;
-        else continue;
+        p = p->prevTab;
     }
-    return countTab;
+    return false;
 }
-int SymbolTable::lookUp(SymbolTable *symTab, Node **tabs, string lineVar, int &scope){
-    for(int i = scope; i >= 0; i--){
-        //symTab->head = tabs[i];
-        Node *findNode = tabs[i];
+bool SymbolTable::assignValue(NodeTab* currentScope, string lineName, string lineValue, int scope) {
+    //cout << "OK";
+    NodeTab* p = currentScope;
+    while (p != nullptr) {
+        Node* cur = p->head;
+        while (cur != nullptr)
+        {
+            if (cur->dataType == "number" && checkNum(lineValue) && cur->symName == lineName)
+            {
+                return true;
+            }
+            else if (!(cur->dataType != "number" || checkNum(lineValue)) && cur->symName == lineName)
+            {
+                return false;
+            }
+            else if (!(cur->dataType == "number" || !checkNum(lineValue)) && cur->symName == lineName)
+            {
+                return false;
+            }
+            else if (cur->dataType == "string" && checkStr(lineValue) && cur->symName == lineName)
+            {
+                return true;
+            }
+            else if (!(cur->dataType == "string" || !checkStr(lineValue)) && cur->symName == lineName)
+            {
+                return false;
+            }
+            else if (!(cur->dataType != "string" || checkStr(lineValue)) && cur->symName == lineName)
+            {
+                return false;
+            }
+            cur = cur->next;
+        }
+        p = p->prevTab;
+    }
+
+    return false;
+}
+bool SymbolTable::assignVar(NodeTab* currentScope, string lineName, string lineValue, int scope) {
+    Node* varID;
+    Node* valID;
+    NodeTab* varTab = new NodeTab();
+    NodeTab* valTab = new NodeTab();
+    if (lineName == lineValue)
+        return true;
+
+    NodeTab* p = currentScope;
+    while (p != nullptr) {
+        varID = p->head;
+        valID = p->head;
+        while (varID != nullptr)
+        {
+            if (varID->symName == lineName)
+                varTab->insertInTab(varID);
+            varID = varID->next;
+        }
+        while (valID != nullptr)
+        {
+            if (valID->symName == lineValue)
+                valTab->insertInTab(valID);
+            valID = valID->next;
+        }
+        p = p->prevTab;
+    }
+    //valTab->print(); cout << endl; varTab->print(); cout << endl;
+    if (varTab->head != nullptr && valTab->head != nullptr) {
+        //cout << "OK";
+        //cout << scope;
+        valID = valTab->head;
+        while (valID != nullptr) {
+            varID = varTab->head;
+            while (varID != nullptr)
+            {
+                if (varID->dataType != valID->dataType) {
+                    varTab->deleteNode();
+                    valTab->deleteNode();
+                    return false;
+                }
+                varID = varID->next;
+            }
+            valID = valID->next;
+        }
+        delete varTab;
+        delete valTab;
+    }
+    return true;
+}
+
+int SymbolTable::lookUp(NodeTab* currentScope, string lineVar, int scope) {
+    NodeTab* p = currentScope;
+    while (p != nullptr) {
+
+        Node* findNode = p->head;
         while (findNode != nullptr)
         {
-            if (findNode->tabName == lineVar)
+            if (findNode->symName == lineVar)
             {
-                return i;
+                return findNode->nodeLevel;
             }
             findNode = findNode->next;
         }
+        p = p->prevTab;
     }
     return -1;
 }
 
-Node* SymbolTable::List(Node **tabs, int scope){
-    Node *headList = nullptr;
-    int beginScope;
-    for(int i = 0; i <= scope; i++){
-        if(tabs[i] != nullptr){
-            beginScope = i;
-            headList = new Node(tabs[i]);      // Node khong null dau tien cua tabs la Node head cua List
+Node* SymbolTable::List(int scope) {
+    Node* headList = nullptr;
+    NodeTab* p = this->headTabs;
+    int beginCount = 0;
+    while (p != nullptr) {
+        if (p->head != nullptr) {
+            headList = new Node(p->head);
+            //scope--;      // Node khong null dau tien cua tabs la Node head cua List
+            //cout << beginCount;
             break;
         }
+        p = p->nextTab;
+        beginCount++;
     }
+    //if (headList == nullptr) cout << "List Null";
+    if (headList == nullptr) return nullptr;
 
-    Node *p = headList;
-    Node *nodeInTab = nullptr;
-    for(int i = beginScope; i <= scope; i++){ 
-        if(i == beginScope)
-            nodeInTab = tabs[i]->next;
+    NodeTab* temp = p;
+    Node* pList = headList;
+    Node* nodeInTab = nullptr;
+    while (temp != nullptr) {
+        // if (temp->head->nodeLevel < scope){
+        //     temp = temp->nextTab;
+        //     continue;
+        // } 
+        if (temp == p)
+            nodeInTab = temp->head->next;
+        //cout << p->head->nodeLevel;
         else
-            nodeInTab = tabs[i];
-
-        while (nodeInTab != nullptr)
-        {
-            Node *newNode = new Node(nodeInTab);
-            p->next = newNode;
-            p = p->next;
+            nodeInTab = temp->head;
+        while (nodeInTab != nullptr) {
+            Node* newNode = new Node(nodeInTab);
+            pList->next = newNode;
+            pList = pList->next;
             nodeInTab = nodeInTab->next;
-        }   
+        }
+        temp = temp->nextTab;
     }
+    // cout << headList->symName << ", ";
     return headList;
 }
-Node* SymbolTable::reverse(Node *head){
+
+Node* SymbolTable::reverse(Node* head) {
     if (head == NULL || head->next == NULL)
         return head;
-
     /* reverse the rest List and put
           the first element at the end */
-    Node *rest = reverse(head->next);
+    Node* rest = reverse(head->next);
     head->next->next = head;
-
     /* tricky step -- see the diagram */
     head->next = NULL;
-
     /* fix the head pointer */
     return rest;
 }
-void SymbolTable::print(Node **tabs, int scope){
-    Node *headList = List(tabs, scope);
-    if(headList == nullptr) return;
-    Node *reverseList = reverse(headList);
 
-    Node *ptr1, *ptr2, *dup;
-    ptr1 = reverseList;
-    while(ptr1 != nullptr && ptr1->next != nullptr){
+void SymbolTable::print(int scope) {
+    NodeTab* printTab = new NodeTab();
+    NodeTab* reversePrint = new NodeTab();
+    //cout << printTab->head->dataType;
+    printTab->head = List(scope);
+    if (printTab->head == nullptr) {
+        //cout << endl;
+        return;
+    }
+    reversePrint->head = reverse(printTab->head);
+    //if (reversePrint->head != nullptr) cout << "NULL";
+    Node* ptr1, * ptr2, * dup;
+    ptr1 = reversePrint->head;
+    while (ptr1 != nullptr && ptr1->next != nullptr) {
         ptr2 = ptr1;
-        while(ptr2->next != nullptr){
-            if(ptr1->tabName == ptr2->next->tabName){
+        while (ptr2->next != nullptr) {
+            if (ptr1->symName == ptr2->next->symName) {
                 dup = ptr2->next;
                 ptr2->next = ptr2->next->next;
                 delete dup;
@@ -354,29 +329,43 @@ void SymbolTable::print(Node **tabs, int scope){
         }
         ptr1 = ptr1->next;
     }
-    headList = reverse(reverseList);
-    Node *printList = headList;
-    while(printList != nullptr){
-        cout << printList->tabName << "//" << printList->scopeLevel;
-        if(printList->next != nullptr) cout << " ";
+    printTab->head = reverse(reversePrint->head);
+    //if (printTab->head == nullptr) cout << "NULL";
+    Node* printList = printTab->head;
+    while (printList != nullptr) {
+        cout << printList->symName << "//" << printList->nodeLevel;
+        if (printList->next != nullptr) cout << " ";
         printList = printList->next;
     }
     cout << endl;
+    printTab->deleteNode();
+    delete printTab;
+    //reversePrint->deleteNode();
+    Node* a = reversePrint->head;
+    //cout << a->symName << ";";
+    //if (reversePrint->head != nullptr) cout << "NOT NULL";
     // delete List;
     // delete printList;
     // delete p;
 }
-void SymbolTable::rePrint(Node **tabs, int scope){
-    Node *headRList = List(tabs,scope);
-    if(headRList == nullptr) return;
-    Node *reverseRList = reverse(headRList);
 
-    Node *ptr1, *ptr2, *dup;
-    ptr1 = reverseRList;
-    while(ptr1 != nullptr && ptr1->next != nullptr){
+void SymbolTable::rePrint(int scope) {
+    NodeTab* rePrTab = new NodeTab();
+    NodeTab* reverseRTab = new NodeTab();
+    // if (List(scope) != nullptr)
+    //     cout << "NULL";
+    rePrTab->head = List(scope);
+    if (rePrTab->head == nullptr) {
+        //cout << endl;
+        return;
+    }
+    reverseRTab->head = reverse(rePrTab->head);
+    Node* ptr1, * ptr2, * dup;
+    ptr1 = reverseRTab->head;
+    while (ptr1 != nullptr && ptr1->next != nullptr) {
         ptr2 = ptr1;
-        while(ptr2->next != nullptr){
-            if(ptr1->tabName == ptr2->next->tabName){
+        while (ptr2->next != nullptr) {
+            if (ptr1->symName == ptr2->next->symName) {
                 dup = ptr2->next;
                 ptr2->next = ptr2->next->next;
                 delete dup;
@@ -386,182 +375,201 @@ void SymbolTable::rePrint(Node **tabs, int scope){
         }
         ptr1 = ptr1->next;
     }
-
-    Node *printRList = reverseRList;
-    while(printRList != nullptr){
-        cout << printRList->tabName << "//" << printRList->scopeLevel;
-        if(printRList->next != nullptr) cout << " ";
+    Node* printRList = reverseRTab->head;
+    while (printRList != nullptr) {
+        cout << printRList->symName << "//" << printRList->nodeLevel;
+        if (printRList->next != nullptr) cout << " ";
         printRList = printRList->next;
     }
     cout << endl;
+    reverseRTab->deleteNode();
+    delete reverseRTab;
+    //delete rePrTab;
+    rePrTab = nullptr;
+    reverseRTab = nullptr;
 }
 
-SymbolTable::~SymbolTable(){
-    //delete head;
-}
-
-void SymbolTable::implementation(SymbolTable *symTab, ifstream &file, string line, unsigned int &iLine, int &beginCount, int &endCount, Node **tabs, int &scope){
-    enterScope(symTab, tabs, scope);
-    while (symTab->goNextLine(file, iLine))
+void SymbolTable::implementation(NodeTab* currentTab, ifstream& file, string line, int& beginCount, int& endCount, int& scope)
+{
+    //this->addNewTab();
+    
+    //if (currentTab->prevTab == nullptr) cout << "Prev NULL";
+    //cout << this->tailTabs->head->nodeLevel << " " << this->headTabs->head->nodeLevel;
+    while (getline(file, line))
     {
-        if (getline(file, line))
+        //cout << line << " ";
+        //cout << "Scope = " << scope;
+        //currentTab->print(); cout << endl;
+        string vec[3]{ "" };
+        tokenize(vec, line);
+        checkLine(line);
+        if (vec[0] == "INSERT")
         {
-            //cout << line << " ";
-            regex reg(" +(?=(?:[^\']*\'[^\']*\')*[^\']*$)");
-            regex_token_iterator<string::iterator> iter(line.begin(), line.end(), reg, -1);
-            regex_token_iterator<string::iterator> end;
-            string vec[3]{""};
-            int i = 0;
-            while (iter != end)
-            {
-                if(i >= 3) break;
-                vec[i] = *iter++;
-                i++;
-            }
-            checkLine(line);
-            if (vec[0] == "INSERT")
-            {
-                //tabs[beginCount] = symTab->head;
-                if ((vec[2] != "number" && vec[2] != "string") || !idValid(vec[1]))
-                    throw InvalidInstruction(line);
-                // if (isSpecial(vec[1]) || isSpecial(vec[2]))
-                //     throw InvalidInstruction(line);
-                if (!(insert(symTab, vec[1], vec[2], scope, tabs)))
-                {
-                    throw Redeclared(line);
-                }
-                else
-                    cout << "success" << endl;
-            }
-            else if (vec[0] == "ASSIGN")
-            {
-                //cout << idValid(vec[1]) << " " << idValid(vec[2]);
-                if (!idValid(vec[1]))
-                    throw InvalidInstruction(line);
+            if ((vec[2] != "number" && vec[2] != "string") || !idValid(vec[1]))
+                throw InvalidInstruction(line);
 
-                if ((idValid(vec[1]) && !isDeclared(symTab, vec[1], tabs, scope))
-                || (idValid(vec[2]) && !isDeclared(symTab, vec[2], tabs, scope))) // if name and value are variables, valid and are undeclared
-                { // if vec1 is undeclared
-                    throw Undeclared(line);
+            if (!(this->insert(currentTab, vec[1], vec[2], scope)))
+            {
+                throw Redeclared(line);
+            }
+            else
+                cout << "success" << endl;
+            //symTab->headTabs[scope]->print();
+        }
+        else if (vec[0] == "ASSIGN")
+        {
+            //currentTab->print();
+            if (!idValid(vec[1]))
+                throw InvalidInstruction(line);
+
+            if ((idValid(vec[1]) && !this->isDeclared(currentTab, vec[1], scope))
+                || (idValid(vec[2]) && !this->isDeclared(currentTab, vec[2], scope))) // if name and value are variables, valid and are undeclared
+            {                                                                                                                   // if vec1 is undeclared
+                throw Undeclared(line);
+            }
+            else if (!checkNum(vec[2]) && !checkStr(vec[2]) && !idValid(vec[2])) // if value is not a num, a string and a valid ID
+                throw InvalidInstruction(line);
+            else
+            {
+                if (checkStr(vec[2]) || checkNum(vec[2]))
+                { // if vec2 is a string or a value
+                    if (this->assignValue(currentTab, vec[1], vec[2], scope))
+                        cout << "success" << endl;
+                    if (!this->assignValue(currentTab, vec[1], vec[2], scope))
+                    {
+                        //cout << "Here 1";
+                        throw TypeMismatch(line);
+                    }
                 }
-                else if (!checkNum(vec[2]) && !checkStr(vec[2]) && !idValid(vec[2]))  // if value is not a num, a string and a valid ID
-                    throw InvalidInstruction(line);
                 else
                 {
-                    if (checkStr(vec[2]) || checkNum(vec[2]))
-                    { // if vec2 is a string or a value
-                        if (assignValue(symTab, vec[1], vec[2], tabs, scope))
+                    if (this->isDeclared(currentTab, vec[1], scope)
+                        && this->isDeclared(currentTab, vec[2], scope)) // If vec1 and vec2 are variables
+                    {
+                        if (this->assignVar(currentTab, vec[1], vec[2], scope)) // If both are same type
                             cout << "success" << endl;
-                        if (!assignValue(symTab, vec[1], vec[2], tabs, scope)){
-                            //cout << "Here 1";
+                        else
+                        {
+                            //cout << "Here 2";
                             throw TypeMismatch(line);
                         }
                     }
                     else
-                    {
-                        if (isDeclared(symTab, vec[1], tabs, scope) && isDeclared(symTab, vec[2], tabs, scope)) // If vec1 and vec2 are variables
-                        {
-                            if (assignVar(symTab, vec[1], vec[2], tabs, scope)) // If both are same type
-                                cout << "success" << endl;
-                            else{
-                                //cout << "Here 2";
-                                throw TypeMismatch(line);
-                            }
-                        }
-                        else
-                            throw Undeclared(line);
-                    }
+                        throw Undeclared(line);
                 }
             }
-            else if (vec[0] == "BEGIN")
-            {
-                beginCount++;
-                iLine++;
-                goNextLine(file, iLine);
-                //enterScope(symTab, tabs, scope);
-                //cout << endl <<  iLine << " ";
-                implementation(symTab, file, line, iLine, beginCount, endCount, tabs, scope);
-            }
-            else if (vec[0] == "END")
-            {
-                //tabs[beginCount] = symTab->head;
-                endCount++; //iLine++;
-                beginCount--;
-                if (beginCount < 0){
-                    //cout << "?";
-                    throw UnknownBlock();
-                }
-                if (beginCount == 0)
-                    endCount = 0;
-                exitScope(symTab, tabs, scope);
-                goNextLine(file, iLine);
-                getline(file,line);
-                //cout << endl;
-                //implementation(file, line, iLine, beginCount, endCount);
-                //delete symTab;
-            }
-            else if (vec[0] == "LOOKUP")
-            {
-                if(lookUp(symTab, tabs, vec[1], scope) != -1){
-                    cout << lookUp(symTab, tabs, vec[1], scope) << endl;
-                }
-                else
-                    throw Undeclared(line);
-            }
-            else if (vec[0] == "PRINT")
-            {
-                print(tabs, scope);
-            }
-            else if (vec[0] == "RPRINT")
-            {
-                rePrint(tabs, scope);
-            }
-            else
-                throw InvalidInstruction(line);
-            //cout << "scope: " << scope << endl;
-            tabs[scope] = symTab->head;
-            symTab->head = tabs[scope];
-            iLine++;
         }
-        else {
-            if (beginCount == 0){
-                //cout << beginCount << " " << endCount << " ";
-                return;                  
-            } 
-            else if(beginCount > 0)
-                throw UnclosedBlock(beginCount);
-            if (beginCount < endCount){
-                //cout << beginCount << " " << endCount << " ";
-                //cout << "Here 2";
+        else if (vec[0] == "BEGIN")
+        {
+            beginCount++;
+            scope++;
+            this->addNewTab();
+            //NodeTab* p = currentTab;
+            currentTab = currentTab->nextTab;
+            //currentTab->prevTab = p;
+        }
+        else if (vec[0] == "END")
+        {
+            //tabs[beginCount] = symTab->head;
+            endCount++; //iLine++;
+            beginCount--;
+            scope--;
+            if (beginCount < 0)
+            {
+                //cout << "?";
                 throw UnknownBlock();
             }
-            else if (beginCount >= endCount){
-                throw UnclosedBlock(beginCount);
+            if (beginCount == 0)
+                endCount = 0;
+            NodeTab* pPrev = currentTab->prevTab;
+            NodeTab* pNext = currentTab->nextTab;
+            if (pPrev != nullptr) {
+                pPrev->nextTab = pNext;
+                delete currentTab;
+                currentTab = pPrev;
             }
-            else{
-                return;
+            else {
+                headTabs = pNext;
+                currentTab = headTabs;
             }
-                
+            if (pNext != nullptr) {
+                pNext->prevTab = pPrev;
+                delete currentTab;
+                currentTab = pPrev;
+            }
+            else {
+                tailTabs = pPrev;
+                currentTab = tailTabs;
+            }
+
+
         }
+        else if (vec[0] == "LOOKUP")
+        {
+            //cout << "???";
+            if (lookUp(currentTab, vec[1], scope) != -1)
+            {
+                cout << lookUp(currentTab, vec[1], scope) << endl;
+            }
+            else
+                throw Undeclared(line);
+        }
+        else if (vec[0] == "PRINT")
+        {
+            //cout << "OK";
+            this->print(scope);
+            //currentTab->print();
+        }
+        else if (vec[0] == "RPRINT")
+        {
+            this->rePrint(scope);
+        }
+        else
+            throw InvalidInstruction(line);
+        //cout << "scope: " << scope << endl;
+        //tabs[scope] = symTab->head;
+        //symTab->head = tabs[scope];
     }
+    if (beginCount == 0)
+    {
+        //cout << beginCount << " " << endCount << " ";
+        return;
+    }
+    else if (beginCount > 0)
+        throw UnclosedBlock(beginCount);
+    if (beginCount < endCount)
+    {
+        //cout << beginCount << " " << endCount << " ";
+        //cout << "Here 2";
+        throw UnknownBlock();
+    }
+    else if (beginCount >= endCount)
+    {
+        throw UnclosedBlock(beginCount);
+    }
+    else
+    {
+        return;
+    }
+
 
     return;
 }
+
 void SymbolTable::run(string filename) {
     ifstream file(filename);
     string line = "";
     int beginCount = 0, endCount = 0;
-    unsigned int iLine = 1;
-    int scope = -1;
-    Node **tabs = new Node*[howManyScope(filename)];
-    if(file.is_open()){
-        implementation(this, file, line, iLine, beginCount, endCount, tabs, scope);
-        //cout << "Tabs = " << howManyScope(filename) << endl;
+    int scope = 0;
+    NodeTab* currentTab = this->headTabs;
+    if (file.is_open())
+    {
+        this->implementation(currentTab, file, line, beginCount, endCount, scope);
     }
+    //cout << this->totalTab;
+    //delete currentTab;
     file.close();
-    // for(int i = 0; i < howManyScope(filename); i++)
-    //     delete[] tabs[i];
-    // delete[] tabs;
     return;
+
 }
 

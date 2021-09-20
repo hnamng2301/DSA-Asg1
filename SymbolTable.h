@@ -28,7 +28,7 @@ public:
         nodeLevel = node->nodeLevel;
         next = nullptr;
     }
-    ~Node() {    }
+    //~Node() {    }
     friend class SymbolTable;
     friend class NodeTab;
 };
@@ -81,14 +81,28 @@ public:
             p = p->next;
         }
     }
+    Node* reverse(Node* head){
+        if (head == NULL || head->next == NULL)
+            return head;
+    /* reverse the rest List and put
+          the first element at the end */
+        Node* rest = reverse(head->next);
+        head->next->next = head;
+    /* tricky step -- see the diagram */
+        head->next = NULL;
+    /* fix the head pointer */
+        return rest;
+    }
     void deleteNode() {
         Node* current = head;
         Node* nextPtr = nullptr;
         while (current != nullptr) {
             nextPtr = current->next;
             delete current;
+            current = nullptr;
             current = nextPtr;
         }
+        current = nullptr;
         head = nullptr;
         tail = nullptr;
         //this = nullptr;
@@ -140,7 +154,6 @@ public:
     bool assignVar(NodeTab* currentScope, string lineID, string lineValue, int scope);  // task 3.5.2 function check 2 variables are same type
     int lookUp(NodeTab* currentScope, string lineVar, int scope);  // task 3.5.4 function
     Node* List(int scope);
-    Node* reverse(Node* head);
     void print(int scope);   // task 3.5.5 function
     void rePrint(int scope); // task 3.5.6 function
     void deleteSymbolTab() {
@@ -148,7 +161,11 @@ public:
         NodeTab* nextTab = nullptr;
         while (current != nullptr) {
             nextTab = current->nextTab;
+            current->deleteNode();
+            //if (current->head == NULL) cout << "Here NULL";
             delete current;
+            //delete current;
+            //if (current != NULL) cout << "Here NULL";
             current = nullptr;
             current = nextTab;
             //current->prevTab = nullptr;
@@ -158,19 +175,6 @@ public:
     }
     ~SymbolTable() {
         this->deleteSymbolTab();
-        //delete this->tailTabs;
-        /*
-        NodeTab* nextTab = nullptr;
-        while (current != nullptr) {
-            nextTab = current->nextTab;
-            delete current;
-            //current = nullptr;
-            current = nextTab;
-        }
-        headTabs = nullptr;
-        tailTabs = nullptr;
-        cout << "Delete Success";
-        */
     }
     
 };

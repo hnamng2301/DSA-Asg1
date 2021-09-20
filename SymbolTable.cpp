@@ -180,13 +180,17 @@ bool SymbolTable::assignValue(NodeTab* currentScope, string lineName, string lin
 
     return false;
 }
+
 bool SymbolTable::assignVar(NodeTab* currentScope, string lineName, string lineValue, int scope) {
-    Node* varID;
-    Node* valID;
+    Node* varID = nullptr;
+    Node* valID = nullptr;
     NodeTab* varTab = new NodeTab();
     NodeTab* valTab = new NodeTab();
-    if (lineName == lineValue)
+    if (lineName == lineValue) {
+        delete varTab;
+        delete valTab;
         return true;
+    }
 
     NodeTab* p = currentScope;
     while (p != nullptr) {
@@ -216,8 +220,8 @@ bool SymbolTable::assignVar(NodeTab* currentScope, string lineName, string lineV
             while (varID != nullptr)
             {
                 if (varID->dataType != valID->dataType) {
-                    varTab->deleteNode();
-                    valTab->deleteNode();
+                    delete varTab;
+                    delete valTab;
                     return false;
                 }
                 varID = varID->next;
@@ -227,6 +231,7 @@ bool SymbolTable::assignVar(NodeTab* currentScope, string lineName, string lineV
         delete varTab;
         delete valTab;
     }
+    
     return true;
 }
 
@@ -290,32 +295,22 @@ Node* SymbolTable::List(int scope) {
     return headList;
 }
 
-Node* SymbolTable::reverse(Node* head) {
-    if (head == NULL || head->next == NULL)
-        return head;
-    /* reverse the rest List and put
-          the first element at the end */
-    Node* rest = reverse(head->next);
-    head->next->next = head;
-    /* tricky step -- see the diagram */
-    head->next = NULL;
-    /* fix the head pointer */
-    return rest;
-}
-
 void SymbolTable::print(int scope) {
     NodeTab* printTab = new NodeTab();
-    NodeTab* reversePrint = new NodeTab();
+    Node* reversePrint = nullptr;
     //cout << printTab->head->dataType;
+
     printTab->head = List(scope);
+    reversePrint = printTab->head;
     if (printTab->head == nullptr) {
         //cout << endl;
+        delete printTab;
         return;
     }
-    reversePrint->head = reverse(printTab->head);
-    //if (reversePrint->head != nullptr) cout << "NULL";
+    reversePrint = printTab->reverse(printTab->head);
+    printTab->head = reversePrint;
     Node* ptr1, * ptr2, * dup;
-    ptr1 = reversePrint->head;
+    ptr1 = reversePrint;
     while (ptr1 != nullptr && ptr1->next != nullptr) {
         ptr2 = ptr1;
         while (ptr2->next != nullptr) {
@@ -329,7 +324,7 @@ void SymbolTable::print(int scope) {
         }
         ptr1 = ptr1->next;
     }
-    printTab->head = reverse(reversePrint->head);
+    printTab->head = printTab->reverse(printTab->head);
     //if (printTab->head == nullptr) cout << "NULL";
     Node* printList = printTab->head;
     while (printList != nullptr) {
@@ -338,28 +333,24 @@ void SymbolTable::print(int scope) {
         printList = printList->next;
     }
     cout << endl;
-    printTab->deleteNode();
     delete printTab;
-    //reversePrint->deleteNode();
-    Node* a = reversePrint->head;
-    //cout << a->symName << ";";
-    //if (reversePrint->head != nullptr) cout << "NOT NULL";
-    // delete List;
-    // delete printList;
-    // delete p;
+    reversePrint = NULL;
 }
 
 void SymbolTable::rePrint(int scope) {
-    NodeTab* rePrTab = new NodeTab();
+    Node* rePrTab = nullptr;
     NodeTab* reverseRTab = new NodeTab();
-    // if (List(scope) != nullptr)
-    //     cout << "NULL";
-    rePrTab->head = List(scope);
-    if (rePrTab->head == nullptr) {
+
+    rePrTab = List(scope);
+
+    if (rePrTab == nullptr) {
         //cout << endl;
+        delete reverseRTab;
         return;
     }
-    reverseRTab->head = reverse(rePrTab->head);
+    reverseRTab->head = rePrTab;
+    reverseRTab->head = reverseRTab->reverse(reverseRTab->head);
+
     Node* ptr1, * ptr2, * dup;
     ptr1 = reverseRTab->head;
     while (ptr1 != nullptr && ptr1->next != nullptr) {
@@ -572,4 +563,3 @@ void SymbolTable::run(string filename) {
     return;
 
 }
-

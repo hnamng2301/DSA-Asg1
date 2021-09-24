@@ -63,6 +63,7 @@ public:
     void insertInTab(Node* newNode) {
         this->insertInTab(newNode->symName, newNode->dataType, newNode->nodeLevel);
     }
+    // Check declared
     bool isNotExist(string lineName) {
         Node* p = head;
         while (p != nullptr) {
@@ -72,6 +73,7 @@ public:
         }
         return true;
     }
+    // Testing function
     void print() {
         Node* p = head;
         while (p != nullptr) {
@@ -81,6 +83,7 @@ public:
             p = p->next;
         }
     }
+    // Support function for Print and RPrint
     Node* reverse(Node* head){
         if (head == NULL || head->next == NULL)
             return head;
@@ -93,6 +96,7 @@ public:
     /* fix the head pointer */
         return rest;
     }
+    // Clear Tab and destructor
     void deleteNode() {
         Node* current = head;
         Node* nextPtr = nullptr;
@@ -113,7 +117,7 @@ public:
     friend class SymbolTable;
     friend class Node;
 };
-//int NodeTab::totalTab = -1;
+
 
 class SymbolTable
 {
@@ -142,7 +146,7 @@ public:
     }
     void run(string filename);    // default function
     void implementation(NodeTab* current, ifstream& file, string filename, int& beginCount, int& endCount, int& scope);
-    void tokenize(string vec[], string line);
+    void tokenize(string vec[], string line);    // Spilit line
     bool idValid(string lineID);  // support function
     bool checkNum(string lineValue);   // support function check value is a const number
     bool checkStr(string lineValue);   // check value is a const string
@@ -153,7 +157,7 @@ public:
     bool assignValue(NodeTab* currentScope, string lineID, string lineValue, int scope);  // task 3.5.2 function check value is same type with variable
     bool assignVar(NodeTab* currentScope, string lineID, string lineValue, int scope);  // task 3.5.2 function check 2 variables are same type
     int lookUp(NodeTab* currentScope, string lineVar, int scope);  // task 3.5.4 function
-    Node* List(int scope);
+    Node* List(int scope);   // List to Print and RPrint
     void print(int scope);   // task 3.5.5 function
     void rePrint(int scope); // task 3.5.6 function
     void deleteSymbolTab() {

@@ -116,6 +116,8 @@ void SymbolTable::checkLine(string line)
     //     throw InvalidInstruction(line);
 
 }
+//End of Support function for check Invalid
+
 bool SymbolTable::insert(NodeTab* currentScope, string lineName, string lineType, int scope) {
     // Check Table is NULL?
     //cout << currentScope->head->nodeLevel;
@@ -142,6 +144,8 @@ bool SymbolTable::isDeclared(NodeTab* currentScope, string lineVar, int scope) {
     }
     return false;
 }
+
+// Can assign Value or Variable?
 bool SymbolTable::assignValue(NodeTab* currentScope, string lineName, string lineValue, int scope) {
     //cout << "OK";
     NodeTab* p = currentScope;
@@ -215,25 +219,24 @@ bool SymbolTable::assignVar(NodeTab* currentScope, string lineName, string lineV
         //cout << "OK";
         //cout << scope;
         valID = valTab->head;
-        while (valID != nullptr) {
-            varID = varTab->head;
-            while (varID != nullptr)
-            {
-                if (varID->dataType != valID->dataType) {
-                    delete varTab;
-                    delete valTab;
-                    return false;
-                }
-                varID = varID->next;
-            }
-            valID = valID->next;
+        varID = varTab->head;
+
+        if (varID->dataType != valID->dataType)
+        {
+            delete varTab;
+            delete valTab;
+            return false;
         }
-        delete varTab;
-        delete valTab;
+        else {
+            delete varTab;
+            delete valTab;
+            return true;
+        }
     }
     
     return true;
 }
+///////////////////////////////
 
 int SymbolTable::lookUp(NodeTab* currentScope, string lineVar, int scope) {
     NodeTab* p = currentScope;
@@ -253,6 +256,7 @@ int SymbolTable::lookUp(NodeTab* currentScope, string lineVar, int scope) {
     return -1;
 }
 
+//Support function for Print and RPrint
 Node* SymbolTable::List(int scope) {
     Node* headList = nullptr;
     NodeTab* p = this->headTabs;
@@ -380,6 +384,7 @@ void SymbolTable::rePrint(int scope) {
     reverseRTab = nullptr;
 }
 
+// Read file and condition for each task
 void SymbolTable::implementation(NodeTab* currentTab, ifstream& file, string line, int& beginCount, int& endCount, int& scope)
 {
     //this->addNewTab();
@@ -547,6 +552,7 @@ void SymbolTable::implementation(NodeTab* currentTab, ifstream& file, string lin
     return;
 }
 
+// Main function
 void SymbolTable::run(string filename) {
     ifstream file(filename);
     string line = "";

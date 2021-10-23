@@ -391,8 +391,9 @@ void SymbolTable::implementation(NodeTab* currentTab, ifstream& file, string lin
     
     //if (currentTab->prevTab == nullptr) cout << "Prev NULL";
     //cout << this->tailTabs->head->nodeLevel << " " << this->headTabs->head->nodeLevel;
-    while (getline(file, line))
+    while (!file.eof())
     {
+        getline(file, line);
         //cout << line << " ";
         //cout << "Scope = " << scope;
         //currentTab->print(); cout << endl;
